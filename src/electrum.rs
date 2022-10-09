@@ -14,6 +14,7 @@ use std::collections::{hash_map::Entry, HashMap};
 use std::fmt;
 use std::iter::FromIterator;
 use std::str::FromStr;
+use std::sync::Once;
 
 use crate::{
     cache::Cache,
@@ -31,6 +32,8 @@ const PROTOCOL_VERSION: &str = "1.4";
 const UNKNOWN_FEE: isize = -1; // (allowed by Electrum protocol)
 
 const UNSUBSCRIBED_QUERY_MESSAGE: &str = "your wallet uses less efficient method of querying electrs, consider contacting the developer of your wallet. Reason:";
+
+static UNSUBSCRIBED_GET_BALANCE: Once = Once::new();
 
 /// Per-client Electrum protocol state
 #[derive(Default)]
@@ -275,14 +278,22 @@ impl Rpc {
         &self,
         client: &Client,
         (scripthash,): &(ScriptHash,),
+        id: &Value,
     ) -> Result<Value> {
+        info!(
+            "blockchain.scripthash.get_balance of {}, id = {}",
+            scripthash, id
+        );
         let balance = match client.scripthashes.get(scripthash) {
             Some(status) => self.tracker.get_balance(status),
             None => {
-                info!(
-                    "{} blockchain.scripthash.get_balance called for unsubscribed scripthash",
-                    UNSUBSCRIBED_QUERY_MESSAGE
-                );
+                // Display info only once to not pollute logs
+                UNSUBSCRIBED_GET_BALANCE.call_once(|| {
+                    info!(
+                        "{} blockchain.scripthash.get_balance called for unsubscribed scripthash",
+                        UNSUBSCRIBED_QUERY_MESSAGE
+                    );
+                });
                 self.tracker.get_balance(&self.new_status(*scripthash)?)
             }
         };
@@ -607,7 +618,9 @@ impl Rpc {
                 Params::PeersSubscribe => Ok(json!([])),
                 Params::Ping => Ok(Value::Null),
                 Params::RelayFee => self.relayfee(),
-                Params::ScriptHashGetBalance(args) => self.scripthash_get_balance(client, args),
+                Params::ScriptHashGetBalance(args) => {
+                    self.scripthash_get_balance(client, args, &call.id)
+                }
                 Params::ScriptHashGetHistory(args) => self.scripthash_get_history(client, args),
                 Params::ScriptHashListUnspent(args) => self.scripthash_list_unspent(client, args),
                 Params::ScriptHashSubscribe(args) => self.scripthash_subscribe(client, args),
