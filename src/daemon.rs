@@ -121,7 +121,7 @@ impl Daemon {
                     break; // on success, finish polling
                 }
                 PollResult::Retry => {
-                    std::thread::sleep(std::time::Duration::from_secs(1)); // wait a bit before polling
+                    std::thread::sleep(std::time::Duration::from_secs(10)); // wait a bit before polling
                 }
             }
         }
