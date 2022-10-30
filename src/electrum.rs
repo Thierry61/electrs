@@ -792,7 +792,13 @@ fn parse_requests(line: &str) -> Result<Requests, StandardError> {
             }
         },
         Err(err) => {
-            warn!("invalid JSON ({:?}): {}", line, err);
+            if line.is_empty() {
+                warn!("Empty line")
+            } else if line.starts_with('#') {
+                warn!("Comment starting with #")
+            } else {
+                warn!("invalid JSON ({:?}): {}", line, err);
+            }
             Err(StandardError::ParseError)
         }
     }
