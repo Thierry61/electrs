@@ -34,6 +34,8 @@ const UNKNOWN_FEE: isize = -1; // (allowed by Electrum protocol)
 const UNSUBSCRIBED_QUERY_MESSAGE: &str = "your wallet uses less efficient method of querying electrs, consider contacting the developer of your wallet. Reason:";
 
 static UNSUBSCRIBED_GET_BALANCE: Once = Once::new();
+static UNSUBSCRIBED_GET_HISTORY: Once = Once::new();
+static UNSUBSCRIBED_LISTUNSPENT: Once = Once::new();
 
 /// Per-client Electrum protocol state
 #[derive(Default)]
@@ -304,14 +306,21 @@ impl Rpc {
         &self,
         client: &Client,
         (scripthash,): &(ScriptHash,),
+        id: &Value,
     ) -> Result<Value> {
+        info!(
+            "blockchain.scripthash.get_history of {}, id = {}",
+            scripthash, id
+        );
         let history_entries = match client.scripthashes.get(scripthash) {
             Some(status) => json!(status.get_history()),
             None => {
-                info!(
-                    "{} blockchain.scripthash.get_history called for unsubscribed scripthash",
-                    UNSUBSCRIBED_QUERY_MESSAGE
-                );
+                UNSUBSCRIBED_GET_HISTORY.call_once(|| {
+                    info!(
+                        "{} blockchain.scripthash.get_history called for unsubscribed scripthash",
+                        UNSUBSCRIBED_QUERY_MESSAGE
+                    );
+                });
                 json!(self.new_status(*scripthash)?.get_history())
             }
         };
@@ -322,14 +331,21 @@ impl Rpc {
         &self,
         client: &Client,
         (scripthash,): &(ScriptHash,),
+        id: &Value,
     ) -> Result<Value> {
+        info!(
+            "blockchain.scripthash.listunspent of {}, id = {}",
+            scripthash, id
+        );
         let unspent_entries = match client.scripthashes.get(scripthash) {
             Some(status) => self.tracker.get_unspent(status),
             None => {
-                info!(
-                    "{} blockchain.scripthash.listunspent called for unsubscribed scripthash",
-                    UNSUBSCRIBED_QUERY_MESSAGE
-                );
+                UNSUBSCRIBED_LISTUNSPENT.call_once(|| {
+                    info!(
+                        "{} blockchain.scripthash.listunspent called for unsubscribed scripthash",
+                        UNSUBSCRIBED_QUERY_MESSAGE
+                    );
+                });
                 self.tracker.get_unspent(&self.new_status(*scripthash)?)
             }
         };
@@ -621,8 +637,12 @@ impl Rpc {
                 Params::ScriptHashGetBalance(args) => {
                     self.scripthash_get_balance(client, args, &call.id)
                 }
-                Params::ScriptHashGetHistory(args) => self.scripthash_get_history(client, args),
-                Params::ScriptHashListUnspent(args) => self.scripthash_list_unspent(client, args),
+                Params::ScriptHashGetHistory(args) => {
+                    self.scripthash_get_history(client, args, &call.id)
+                }
+                Params::ScriptHashListUnspent(args) => {
+                    self.scripthash_list_unspent(client, args, &call.id)
+                }
                 Params::ScriptHashSubscribe(args) => self.scripthash_subscribe(client, args),
                 Params::ScriptHashUnsubscribe(args) => self.scripthash_unsubscribe(client, args),
                 Params::TransactionBroadcast(args) => self.transaction_broadcast(args),
