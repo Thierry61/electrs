@@ -258,8 +258,7 @@ dependencies = [
 [[package]]
 name = "configure_me"
 version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d03c1fbdead926855bdafee8ddf16cd42efb3c75d8cde8c87f8937b99510b39d"
+source = "git+https://github.com/Thierry61/configure_me.git?branch=v0.4.x#d0a31da582192fff06ec7a83dd8973ba05d3b539"
 dependencies = [
  "parse_arg 0.1.6",
  "serde",
@@ -270,8 +269,7 @@ dependencies = [
 [[package]]
 name = "configure_me_codegen"
 version = "0.4.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5e56840275667a19b0e8ab80219c81fb0bd924e567366d9f12aa385fb45511ea"
+source = "git+https://github.com/Thierry61/configure_me.git?branch=v0.4.x#d0a31da582192fff06ec7a83dd8973ba05d3b539"
 dependencies = [
  "cargo_toml",
  "fmt2io",

@@ -26,7 +26,10 @@ anyhow = "1.0"
 bitcoin = { version = "0.32.6", features = ["serde", "rand-std"] }
 bitcoin_slices = { version = "0.10.0", features = ["bitcoin", "sha2"] }
 bitcoincore-rpc = { version = "0.19.0" }
-configure_me = "0.4"
+# configure_me = "0.4"
+# configure_me = { git = "https://github.com/Kixunil/configure_me.git", branch = "various-improvements" }
+# configure_me = { path = "../configure_me/configure_me" }
+configure_me = { git = "https://github.com/Thierry61/configure_me.git", branch = "v0.4.x" }
 crossbeam-channel = "0.5"
 dirs-next = "2.0"
 env_logger = "0.10"
@@ -54,7 +57,10 @@ default-features = false
 features = ["zstd", "snappy"]
 
 [build-dependencies]
-configure_me_codegen = { version = "0.4.8", default-features = false }
+# configure_me_codegen = { version = "0.4.8", default-features = false }
+# configure_me_codegen = { git = "https://github.com/Kixunil/configure_me.git", branch = "various-improvements", default-features = false }
+# configure_me_codegen = { path = "../configure_me/configure_me_codegen", default-features = false }
+configure_me_codegen = { git = "https://github.com/Thierry61/configure_me.git", branch = "v0.4.x", default-features = false }
 
 [dev-dependencies]
 bitcoin-test-data = "0.2.0"
